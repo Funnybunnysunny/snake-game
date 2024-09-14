@@ -14,6 +14,7 @@ let gameSpeed = 100;
 let highScore = localStorage.getItem("highScore") || 0;
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
+// Listen for key presses to change direction
 document.addEventListener("keydown", changeDirection);
 
 function changeDirection(event) {
