@@ -8,6 +8,7 @@ let snake = [{ x: 10, y: 10 }];
 let direction = { x: 0, y: 0 };
 let food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
 let score = 0;
+let highScore = localStorage.getItem("highScore") || 0; // Retrieve the high score from local storage
 
 document.addEventListener("keydown", changeDirection);
 
@@ -52,8 +53,21 @@ function drawGame() {
   // Check collision
   if (head.x < 0 || head.y < 0 || head.x >= canvasSize || head.y >= canvasSize || snakeCollision(head)) {
     clearInterval(game);
-    alert(`Game Over! Your score: ${score}`);
+    
+    // Check if the current score is higher than the high score
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("highScore", highScore); // Save the new high score to local storage
+    }
+
+    alert(`Game Over! Your score: ${score}. High Score: ${highScore}`);
   }
+
+  // Display score and high score
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.fillText(`High Score: ${highScore}`, 10, 40);
 }
 
 function snakeCollision(head) {
