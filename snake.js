@@ -14,10 +14,6 @@ let gameSpeed = 100;
 let highScore = localStorage.getItem("highScore") || 0;
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-// Define obstacles
-const obstacleCount = 5;
-let obstacles = generateObstacles(obstacleCount);
-
 document.addEventListener("keydown", changeDirection);
 
 function changeDirection(event) {
@@ -46,9 +42,6 @@ function drawGame() {
   ctx.fillStyle = "red";
   ctx.fillRect(food.x * box, food.y * box, box, box);
 
-  // Draw obstacles
-  drawObstacles();
-
   // Move snake
   let head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
   snake.unshift(head);
@@ -71,7 +64,7 @@ function drawGame() {
   }
 
   // Check collision
-  if (head.x < 0 || head.y < 0 || head.x >= canvasSize || head.y >= canvasSize || snakeCollision(head) || checkObstacleCollision(head)) {
+  if (head.x < 0 || head.y < 0 || head.x >= canvasSize || head.y >= canvasSize || snakeCollision(head)) {
     endGame();
     return;
   }
@@ -92,28 +85,6 @@ function speedUpGame() {
 
 function snakeCollision(head) {
   return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
-}
-
-function checkObstacleCollision(head) {
-  return obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y);
-}
-
-function drawObstacles() {
-  ctx.fillStyle = "grey";
-  obstacles.forEach((obstacle) => {
-    ctx.fillRect(obstacle.x * box, obstacle.y * box, box, box);
-  });
-}
-
-function generateObstacles(count) {
-  let obs = [];
-  for (let i = 0; i < count; i++) {
-    obs.push({
-      x: Math.floor(Math.random() * canvasSize),
-      y: Math.floor(Math.random() * canvasSize)
-    });
-  }
-  return obs;
 }
 
 function endGame() {
