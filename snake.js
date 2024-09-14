@@ -7,11 +7,16 @@ let snake = [{ x: 10, y: 10 }];
 let direction = { x: 0, y: 0 };
 let food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
 let score = 0;
-let level = 1; // Start at level 1
-let applesNeededForLevelUp = 5; // Number of apples needed to level up
-let applesCollected = 0; // Track apples collected
-let gameSpeed = 100; // Initial game speed
-let highScore = localStorage.getItem("highScore") || 0; // Retrieve the high score from local storage
+let level = 1;
+let applesNeededForLevelUp = 5;
+let applesCollected = 0;
+let gameSpeed = 100;
+let highScore = localStorage.getItem("highScore") || 0;
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+// Define obstacles
+const obstacleCount = 5;
+let obstacles = generateObstacles(obstacleCount);
 
 document.addEventListener("keydown", changeDirection);
 
@@ -51,15 +56,15 @@ function drawGame() {
   // Check if snake ate food (apple)
   if (head.x === food.x && head.y === food.y) {
     score++;
-    applesCollected++; // Track collected apples
+    applesCollected++;
     food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
-    
+
     // Check for level up
     if (applesCollected >= applesNeededForLevelUp) {
       level++;
-      applesCollected = 0; // Reset apple count for the next level
-      applesNeededForLevelUp = Math.floor(applesNeededForLevelUp * 1.5); // Increase difficulty
-      speedUpGame(); // Call a function to speed up the game
+      applesCollected = 0;
+      applesNeededForLevelUp = Math.floor(applesNeededForLevelUp * 1.5);
+      speedUpGame();
     }
   } else {
     snake.pop();
@@ -67,15 +72,8 @@ function drawGame() {
 
   // Check collision
   if (head.x < 0 || head.y < 0 || head.x >= canvasSize || head.y >= canvasSize || snakeCollision(head) || checkObstacleCollision(head)) {
-    clearInterval(game);
-    
-    // Check if the current score is higher than the high score
-    if (score > highScore) {
-      highScore = score;
-      localStorage.setItem("highScore", highScore); // Save the new high score to local storage
-    }
-
-    alert(`Game Over! Your score: ${score}. High Score: ${highScore}`);
+    endGame();
+    return;
   }
 
   // Display score, level, and high score
@@ -87,9 +85,9 @@ function drawGame() {
 }
 
 function speedUpGame() {
-  clearInterval(game); // Stop the current game loop
-  gameSpeed = Math.max(50, gameSpeed - 10); // Increase speed but don't go below 50ms
-  game = setInterval(drawGame, gameSpeed); // Restart the game loop with the new speed
+  clearInterval(game);
+  gameSpeed = Math.max(50, gameSpeed - 10);
+  game = setInterval(drawGame, gameSpeed);
 }
 
 function snakeCollision(head) {
@@ -107,18 +105,49 @@ function drawObstacles() {
   });
 }
 
-const obstacleCount = 5; // Number of obstacles
-let obstacles = generateObstacles(obstacleCount);
-
 function generateObstacles(count) {
   let obs = [];
   for (let i = 0; i < count; i++) {
-    obs.push({ 
-      x: Math.floor(Math.random() * canvasSize), 
-      y: Math.floor(Math.random() * canvasSize) 
+    obs.push({
+      x: Math.floor(Math.random() * canvasSize),
+      y: Math.floor(Math.random() * canvasSize)
     });
   }
   return obs;
 }
 
+function endGame() {
+  clearInterval(game);
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("highScore", highScore);
+  }
+  updateLeaderboard();
+  alert(`Game Over! Your score: ${score}. High Score: ${highScore}`);
+}
+
+function updateLeaderboard() {
+  leaderboard.push({ score: score, date: new Date() });
+  leaderboard.sort((a, b) => b.score - a.score);
+  if (leaderboard.length > 10) {
+    leaderboard = leaderboard.slice(0, 10);
+  }
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  displayLeaderboard();
+}
+
+function displayLeaderboard() {
+  const leaderboardList = document.getElementById("leaderboardList");
+  leaderboardList.innerHTML = "";
+  leaderboard.forEach(entry => {
+    const li = document.createElement("li");
+    li.textContent = `Score: ${entry.score} (Date: ${entry.date.toLocaleDateString()})`;
+    leaderboardList.appendChild(li);
+  });
+}
+
+// Initialize game
 const game = setInterval(drawGame, gameSpeed);
+
+// Display leaderboard on page load
+displayLeaderboard();
